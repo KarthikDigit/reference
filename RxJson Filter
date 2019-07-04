@@ -1,0 +1,47 @@
+ String json = Utility.loadJSONFromAsset(this, "notijson.json");
+
+        final NotificationApi notificationApi = new Gson().fromJson(json, NotificationApi.class);
+
+
+        Observable.just(notificationApi)
+                .filter(new Predicate<NotificationApi>() {
+                    @Override
+                    public boolean test(NotificationApi notificationApi) throws Exception {
+                        return notificationApi.getSuccess();
+                    }
+                })
+                .filter(new Predicate<NotificationApi>() {
+                    @Override
+                    public boolean test(NotificationApi notificationApi) throws Exception {
+                        return notificationApi != null && notificationApi.getData() != null && notificationApi.getData().getNotifications() != null;
+                    }
+                })
+                .map(new Function<NotificationApi, List<NotificationApi.Data.Notification>>() {
+                    @Override
+                    public List<NotificationApi.Data.Notification> apply(NotificationApi notificationApi) throws Exception {
+                        return notificationApi.getData().getNotifications();
+                    }
+                })
+                .firstOrError()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SingleObserver<List<NotificationApi.Data.Notification>>() {
+                    @Override
+                    public void onSubscribe(Disposable disposable) {
+
+                    }
+
+                    @Override
+                    public void onSuccess(List<NotificationApi.Data.Notification> notifications) {
+
+                        showToast("Not " + notifications.size());
+
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {
+
+                        showToast("Erro " + throwable.getMessage());
+
+                    }
+                });
